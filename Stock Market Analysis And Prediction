@@ -1,5 +1,111 @@
 Stock Market (i)Analysis and (ii)Prediction
-i. Analysis
-puedkanfkanknalled up 500 SAP comapanies stocks data since 2000 from web(Beautiful_Soup), then playing with that data
-(i) comparing the 2 companies with simplied and better to understand Candlestick graph
-(ii) correlating all the SAP 500 companies thorugh heatmaps , giving us the broad view how to companies strategy hae
+________________________________________________(i)Analysis__________________________________________________________________
+
+pulled up 500 SAP comapanies stocks data since 2000 from web(Beautiful_Soup), then playing with that data
+(1) comparing the 2 companies with simplied and better to understand Candlestick graph
+(2) correlating all the SAP 500 companies thorugh heatmap (here is the heatmap images of the sap500 -
+                                                              https://goo.gl/photos/M9MNh8iwV8Em1ZWL6)
+   
+import pandas as pd
+import pandas_datareader.data as pdr
+from bs4 import BeautifulSoup
+import urllib.request
+import datetime
+import matplotlib.dates as mdates
+from matplotlib.finance import candlestick_ohlc
+import seaborn as sb
+import matplotlib.pyplot as plt
+
+
+url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+url = urllib.request.urlopen(url).read()
+soup = BeautifulSoup(url,'html.parser')
+table = soup('table' , {"class" : "wikitable"})
+
+ticker = []
+tr = table[0].findAll('tr')
+for i in range(1,len(tr)):
+    td = tr[i].find('td')
+    td = td.text
+    ticker.append(td)
+
+    '''end = datetime.datetime(2017, 1, 1)
+    start = datetime.datetime(2000, 1, 1)
+
+    data = pdr.DataReader(td,'yahoo', start, end)
+    data.to_csv(str(td)+'.csv')'''
+
+data = pd.DataFrame()
+for i in range(1,len(ticker)):
+    ticke = pd.read_csv(str(ticker[i])+'.csv',parse_dates=True,index_col='Date')
+    ticke.drop(['Open','High','Low','Close','Volume'],axis=1,inplace=True)
+    ticke.rename(columns={'Adj Close':str(ticker[i])},inplace=True)
+    data = pd.concat([data,ticke],axis=1)
+---------------------------------------- 1 . candlestcik graph-----------------------------------------------------------    
+plt.style.use('ggplot')
+end = datetime.datetime(2017,1,1)
+start = datetime.datetime(2000,1,1)
+
+data = pdr.DataReader('AAPL','yahoo',start,end)
+adj_close = data['Adj Close'].resample('10D').ohlc()
+volumne_10D = data['Volume'].resample('10D').sum()
+
+adj_close.reset_index(inplace=True)
+adj_close['Date'] = adj_close['Date'].map(mdates.date2num)
+
+fig = plt.figure()
+ax1 = plt.subplot2grid((6,1), (0,0), rowspan=5, colspan=1)
+ax2 = plt.subplot2grid((6,1), (5,0), rowspan=1, colspan=1,sharex=ax1)
+ax1.xaxis_date()
+
+candlestick_ohlc(ax1,adj_close.values, width=5, colorup='g')
+ax2.fill_between(volumne_10D.index, volumne_10D.values, 0)
+plt.show()
+
+
+--------------------------------------------2. heatmap of all SAP 500--------------------------------------------------------
+data.to_csv('1DATA.csv')
+
+plt.figure(1)
+data = pd.read_csv('1DATA.csv')
+cor = data.corr()
+sb.heatmap(cor)
+plt.show()
+
+
+____________________________________________ (ii) Predictions _____________________________________________________________
+created some additional feature slow moving average and fast moving average of 20 and 50 days respectivly on adj_close price,they give us the trend that its price is going to decline or on the inclination trend 
+(i) if slow moving average is above the fast moving average then the its good stock(price going to increase)
+(ii) reverse then price going to decrease
+e.g. image of Microsoft stock from follwing code (https://goo.gl/photos/iUVVULkUStzXrRqG6)
+
+**future stock price can be predicted with recurrent neural network and lstm cells with addtion of regression technique(project still going,hence code not added)
+
+
+data = pd.read_csv('1DATA.csv')
+data50 = pd.DataFrame(data.ewm(adjust=True, span=50,ignore_na=True).mean())
+data20 = pd.DataFrame(data.ewm(adjust=True, span=20,ignore_na=True).mean())
+
+plt.plot(data50.index,data50['MSFT'],label = 'slow moving average(50days)')
+plt.plot(data20.index,data20['MSFT'],label = 'fast moving average(20days)')
+plt.plot(data.index,data['MSFT'] , label = 'daily stocks price')
+plt.xlabel("date(given in unix timeformat)")
+plt.ylabel("stock price")
+plt.title("fast moving averge vs slow moving average vs daily stock")
+plt.legend()
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                      
