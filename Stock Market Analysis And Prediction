@@ -1,0 +1,5 @@
+Stock Market (i)Analysis and (ii)Prediction
+i. Analysis
+puedkanfkanknalled up 500 SAP comapanies stocks data since 2000 from web(Beautiful_Soup), then playing with that data
+(i) comparing the 2 companies with simplied and better to understand Candlestick graph
+(ii) correlating all the SAP 500 companies thorugh heatmaps , giving us the broad view how to companies strategy hae
