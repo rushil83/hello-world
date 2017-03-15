@@ -1,0 +1,110 @@
+Neural_Network_Model in Tensorflow
+
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+
+mnist = input_data.read_data_sets("/tmp/data/", one_hot = True)
+
+
+"""
+input_layer*W1 +b1 =layer1 >> activation(layer1) >> activation(layer1) *w2+b2 = layer2
+>>acti(layer2)>> output-layer
+
+## comparing output-layer with output
+cost entropy(output-layer,output)
+then optimizer i.e. minimizing our cost entropy with ##backpropogation
+"""
+
+
+n_nodes1 = 1000
+n_nodes2 = 500
+n_nodes3 = 250
+n_nodes = 125
+
+batch_size = 100
+no_class = 10 ##class = 10 , bcoz we are pridicting 10 classes i.e from 0-9
+
+## x = [none = to flat array , 28 * 28 ]
+## x = height * width , height = none.
+x =tf.placeholder("float",[None,784])
+y =tf.placeholder("float")
+
+## 1 input layer -- 3 hidden layer -- 1 outputlayer
+
+## creating hidden layer framework
+## hidden-layer-1 = ['weights','basis'] where weights=matrix of [data,nodes] and bias = [nodes]
+
+
+def neural_net_model(data):
+    hidden_layer_1 = {"weights":tf.Variable(tf.random_normal([784,n_nodes1])),
+                      "basis":tf.Variable(tf.random_normal([n_nodes1]))}
+
+    hidden_layer_2 = {"weights": tf.Variable(tf.random_normal([n_nodes1, n_nodes2])),
+                      "basis": tf.Variable(tf.random_normal([n_nodes2]))}
+
+    hidden_layer_3 = {"weights": tf.Variable(tf.random_normal([n_nodes2, n_nodes3])),
+                      "basis": tf.Variable(tf.random_normal([n_nodes3]))}
+
+    output_layer = {"weights": tf.Variable(tf.random_normal([n_nodes3, no_class])),
+                      "basis": tf.Variable(tf.random_normal([no_class]))}
+
+
+##  layer1 = data*weights + bias  ||   [1*data]*[data*nodes]+[1*bias] = layer1
+##  then activation of layer1(i.e neuron burn up or not)
+## ouput-layer dosnt have activation layer
+
+
+    layer_1 = tf.add(tf.matmul(data,hidden_layer_1['weights']), hidden_layer_1['basis'])
+    layer_1 = tf.nn.relu(layer_1)
+
+    layer_2 = tf.add(tf.matmul(layer_1, hidden_layer_2['weights']), hidden_layer_2['basis'])
+    layer_2 = tf.nn.relu(layer_2)
+
+    layer_3 = tf.add(tf.matmul(layer_2, hidden_layer_3['weights']), hidden_layer_3['basis'])
+    layer_3 = tf.nn.relu(layer_3)
+
+    o_layer = tf.add(tf.matmul(layer_3, output_layer['weights']), output_layer['basis'])
+
+
+    return o_layer
+
+## hidden layer framework is completed
+##....................................................................................................##
+
+
+
+
+def train_neural_netwrok(x):
+## data is passed through neurals and output is get in prediction
+    prediction = neural_net_model(x)
+## comparing our NEURAL-OUTPUT with (y) in cost function
+## mean is calculated of every data point
+    cost_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=prediction ,logits= y))
+## minimising our cost(mean-error)
+    optimizer = tf.train.AdamOptimizer().minimize(cost_function)
+
+## initialize all varuables(random values of weights & bias matrix)
+    epoch_no = 4
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+## epoch1 started
+        for epoch in range(epoch_no):
+            epoch_loss = 0
+##epooch1 [batch1>>batch2>>batch3],epooch2[batch1>>batch2>>batc3],epoch3[.......
+            for batch in range(int(mnist.train.num_examples/batch_size)):
+                epoch_x, epoch_y = mnist.train.next_batch(batch_size)
+##optimisation of epooc1[batch1] and carry on , x,y are specified
+                batch = sess.run([optimizer, cost_function], feed_dict={x: epoch_x, y: epoch_y})
+
+            print('Epoch', (epoch+1))
+
+##equating if pridict and 'Y' value for ((accuracy calcu)
+##calculating number of times they both are equal
+        correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+
+##reducing the correct(no. of times equal) format to float
+        accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+        print('Accuracy:', accuracy.eval({x: mnist.test.images, y: mnist.test.labels}))
+
+
+train_neural_netwrok(x)
