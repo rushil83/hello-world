@@ -1,7 +1,21 @@
-                    ### cricket survival analysis ###
+ ### cricket survival analysis ###
+--------------------------------------------APPLICATIONS---------------------------------------------------------------------------------
+There are four major applications of survival analysis into analytics:
+1. Business Planning : Profiling customers who has a higher survival rate and make strategy accordingly.
+2. Lifetime Value Prediction : Engage with customers according to their lifetime value
+3. Active customers : Predict when the customer will be active for the next time and take interventions accordingly.
+4. Campaign evaluation : Monitor effect of campaign on the survival rate of customers.
 
-
-
+  Following are some industrial specific applications of survival analysis
+• Banking – customer lifetime and LTV
+• Insurance – time to lapsing on policy
+• Mortgages – time to mortgage redemption
+• Mail Order Catalogue – time to next purchase
+• Retail – time till food customer starts purchasing non-food
+• Manufacturing – lifetime of a machine component
+• Public Sector – time intervals to critical events
+------------------------------------------------------CODE-------------------------------------------------------------------------
+                  
 import pandas as pd
 import urllib.request
 from bs4 import BeautifulSoup as bs
