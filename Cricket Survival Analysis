@@ -16,7 +16,7 @@ There are four major applications of survival analysis into analytics:
 • Public Sector – time intervals to critical events
 ---------------------------------------------Cricket Survival Analysis-------------------------------------------------------------------------                  
 here we are plotting 3 graphs (https://goo.gl/photos/y8Fq4eR2VqDPiGSL7) 
-first we will pulled our data and fetch them in the correct data format 
+first we will pulled our data and fetch them in the correct data format for modeling
 graphs- 
 (i) Country(players) vs career length = this graph tells us about what are the probability of that countrys players
 to survive the specific career length
