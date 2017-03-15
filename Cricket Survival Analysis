@@ -1,5 +1,5 @@
  ### cricket survival analysis ###
---------------------------------------------APPLICATIONS---------------------------------------------------------------------------------
+--------------------------------------------Survival Analysis APPLICATIONS---------------------------------------------------------------------------------
 There are four major applications of survival analysis into analytics:
 1. Business Planning : Profiling customers who has a higher survival rate and make strategy accordingly.
 2. Lifetime Value Prediction : Engage with customers according to their lifetime value
@@ -14,8 +14,15 @@ There are four major applications of survival analysis into analytics:
 • Retail – time till food customer starts purchasing non-food
 • Manufacturing – lifetime of a machine component
 • Public Sector – time intervals to critical events
-------------------------------------------------------CODE-------------------------------------------------------------------------
-                  
+---------------------------------------------Cricket Survival Analysis-------------------------------------------------------------------------                  
+here we are plotting 3 graphs (https://goo.gl/photos/y8Fq4eR2VqDPiGSL7) 
+first we will pulled our data and fetch them in the correct data format 
+graphs- 
+(i) Country(players) vs career length = this graph tells us about what are the probability of that countrys players
+to survive the specific career length
+(ii)strike rate vs career length
+(iii)runs vs career length
+
 import pandas as pd
 import urllib.request
 from bs4 import BeautifulSoup as bs
@@ -110,9 +117,9 @@ data = data[['player', 'country', 'mat', 'inns', 'no', 'runs', 'hs', 'avg', 'bf'
 
 #data.to_csv('data.csv', sep=',')
 #print(batsmen_data)
-###################################################################################################################
+-----------------------------------(i) Player's Country vs Career Length -------------------------------------------------------
 
-
+data = pd.read_csv("data.csv")
 data.ix[:,'censor']=1
 
 data = pd.DataFrame(data)
@@ -229,11 +236,9 @@ kmfwi.survival_function_.plot(ax=ax)
 
 plt.show()
 
-
-
-#################################################################################################################
-
-##atleast 50 innings playe
+--------------------------------------(ii) Strike Rate vs Career length------------------------------------------------------------
+## creating the probability of career length of player vs their strike rate
+##atleast 50 innings player
 data['inns'] = pd.to_numeric(data['inns'])
 innings = data[:][data['inns']>50]
 
@@ -288,4 +293,26 @@ kmfvpoorsr.survival_function_.plot(ax=bx)
 
 plt.show()
 
+--------------------------------- (iii) Runs vs Career_Length ------------------------------------------------------------------------------------------------
 
+data['runs'] = pd.to_numeric(data['runs'])
+
+runs8000 = data.ix[data['runs']>=8000]
+runs3000 = data.ix[data['runs']<=3000]
+#runs3000 = runs3000.ix[runs3000['runs']< 3000]
+
+kmfruns8000 = KaplanMeierFitter()
+kmfruns8000.fit(runs8000['span'],runs8000['censor'],label = ' runs > 8000' )
+
+kmfruns3000 = KaplanMeierFitter()
+kmfruns3000.fit(runs3000['span'],runs3000['censor'],label = ' runs < 3000')
+
+bx = plt.subplot(111)
+kmfruns8000.survival_function_.plot(ax=bx)
+kmfruns3000.survival_function_.plot(ax=bx)
+
+
+plt.xlabel(" career length ( in years )")
+plt.ylabel(" probability of players  ")
+plt.title("probability of players with specific runs vs their career length")
+plt.show()
