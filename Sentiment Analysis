@@ -1,0 +1,170 @@
+
+With the help of neural networks(i.numpy , ii. Tensorflow) we can predict that word is of which topic 
+e.g. here we are loading 2 research paper 1 is about cloud computing and other about earth sciences and we are modeling
+decent neural network model so that it can classify the word,that it was from which research background.
+
+
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+from nltk.corpus import stopwords
+stop = set(stopwords.words("english"))
+import pandas as pd
+from sklearn.utils import shuffle
+import numpy as np
+import Tensorflow as tf
+
+word_bank = []
+cloud_computing_paper=[]
+earth_interior_paper=[]
+
+cloud_computing = open('computing.txt',mode='r')
+for lines in cloud_computing:
+    cloud_computing = word_tokenize(lines.lower())
+    for i in cloud_computing:
+        cloud_computing = [lemmatizer.lemmatize(i)]
+
+        cloud_computing_paper += list(cloud_computing)
+
+cloud_computing_paper1=[]
+for w in cloud_computing_paper:
+    if w not in stop:
+        cloud_computing_paper1.append(w)
+
+
+earth_interior= open('neg.txt',mode='r')
+for lines in earth_interior:
+    earth_interior = word_tokenize(lines.lower())
+    for i in earth_interior:
+        earth_interior = [lemmatizer.lemmatize(i)]
+        earth_interior_paper += list(earth_interior)
+
+earth_interior_paper1=[]
+for w in earth_interior_paper:
+    if w not in stop:
+        earth_interior_paper1.append(w)
+
+word_bank = cloud_computing_paper1 + earth_interior_paper1
+
+data = []
+x = []
+y = []
+for word in cloud_computing_paper1:
+    if word.lower() in word_bank:
+        index_value = word_bank.index(word.lower())
+        x.append([index_value+1])
+        y.append([0])
+for word in earth_interior_paper1:
+    if word.lower() in word_bank:
+        index_value = word_bank.index(word.lower())
+        x.append([index_value+1])
+        y.append([1])
+______________________________________(i. using numpy)_________________________________________________________________________________________
+
+x = np.array(x)
+y = np.array(y)
+weights1 = 2*np.random.random((1,len(x))) - 1
+weights2 = 2*np.random.random((len(x),1)) - 1
+bias1 = 2*np.random.random((1,len(x))) - 1
+bias2 = 2*np.random.random((len(x),1)) - 1
+
+
+for i in range(4):
+    input_layer = x
+    hidden_layer1 = 1/(1+np.exp(-((np.dot(input_layer,weights1))+bias1)))
+    hidden_layer2 = 1/(1+np.exp(-((np.dot(hidden_layer1,weights2))+bias2)))
+    error = y - hidden_layer2
+    l2_delta = error * 1 / (1 + np.exp(-(np.dot(hidden_layer1, weights2))))
+    l1_error = l2_delta.dot(weights2.T)
+    l1_delta = l1_error * 1 / (1 + np.exp(-(np.dot(input_layer, weights1))))
+    weights2 += hidden_layer1.T.dot(l2_delta)
+    weights1 += input_layer.T.dot(l1_delta)
+    print(str(np.mean(np.abs(error))))
+
+______________________________________________(ii. Tensorflow )____________________________________________________________________________________________
+                
+*** (Tensorflow neural network model learnt from - [ pythonprogramming.net] ) ***
+
+data_x = np.array(x)
+data_y = np.array(y)
+
+batch_size = 100
+ ##class = 10 , bcoz we are pridicting 10 classes i.e from 0-9
+
+## x = [none = to flat array , 28 * 28 ]
+## x = height * width , height = none.
+x =tf.placeholder("float",[None,len(word_bank)])
+y=tf.placeholder("float")
+
+## 1 input layer -- 3 hidden layer -- 1 outputlayer
+
+## creating hidden layer framework
+## hidden-layer-1 = ['weights','basis'] where weights=matrix of [data,nodes] and bias = [nodes]
+
+
+def nn_framework(x):
+    hidden_layer_1 = {"weights":tf.Variable(tf.random_normal([len(data_x),125])),
+                      "basis":tf.Variable(tf.random_normal([n_nodes1]))}
+
+    hidden_layer_2 = {"weights": tf.Variable(tf.random_normal([125, 500])),
+                      "basis": tf.Variable(tf.random_normal([500]))}
+
+    hidden_layer_3 = {"weights": tf.Variable(tf.random_normal([500, 625])),
+                      "basis": tf.Variable(tf.random_normal([625]))}
+
+    output_layer = {"weights": tf.Variable(tf.random_normal([625, 1])),
+                      "basis": tf.Variable(tf.random_normal([1]))}
+
+
+##  layer1 = data*weights + bias  ||   [1*data]*[data*nodes]+[1*bias] = layer1
+##  then activation of layer1(i.e neuron burn up or not)
+## ouput-layer dosnt have activation layer
+
+
+    layer_1 = tf.add(tf.matmul(data_x,hidden_layer_1['weights']), hidden_layer_1['basis'])
+    layer_1 = tf.nn.relu(layer_1)
+
+    layer_2 = tf.add(tf.matmul(layer_1, hidden_layer_2['weights']), hidden_layer_2['basis'])
+    layer_2 = tf.nn.relu(layer_2)
+
+    layer_3 = tf.add(tf.matmul(layer_2, hidden_layer_3['weights']), hidden_layer_3['basis'])
+    layer_3 = tf.nn.relu(layer_3)
+
+    o_layer = tf.add(tf.matmul(layer_3, output_layer['weights']), output_layer['basis'])
+
+
+    return o_layer
+
+## hidden layer framework is completed
+
+
+def nn(x):
+##data is passed through neurals and output is get in prediction
+    prediction = nn_framework(x)
+##comparing our NEURAL-OUTPUT with (y) in cost function
+	##mean is calculated of every data point
+	cost_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
+	optimizer = tf.train.AdamOptimizer().minimize(cost_function)
+    epoch_no = 4
+    with tf.Session() as sess:
+    
+       sess.run(tf.initialize_all_variables())
+        for epoch in range(epoch_no):
+            epoch_loss = 0
+            i = 0
+            while i < len(train_x):
+                start = i
+                end = i + batch_size
+                batch_x = np.array(data_x[start:end])
+                batch_y = np.array(data_y[start:end])
+
+                batch, c = sess.run([optimizer, cost_function], feed_dict={x: batch_x,y: batch_y})
+                 i += batch_size                                          
+           
+
+nn(x)
+               
+
+
+
+
