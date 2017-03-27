@@ -165,17 +165,7 @@ def nn(x):
     with tf.Session() as sess:
     
        sess.run(tf.initialize_all_variables())
-        for epoch in range(epoch_no):
-            epoch_loss = 0
-            i = 0
-            while i < len(train_x):
-                start = i
-                end = i + batch_size
-                batch_x = np.array(data_x[start:end])
-                batch_y = np.array(data_y[start:end])
-
-                batch, c = sess.run([optimizer, cost_function], feed_dict={x: batch_x,y: batch_y})
-                 i += batch_size                                          
-           
-
+	for i in range(0,100):
+                i, c = sess.run([optimizer, cost_function], feed_dict={x: data_x,y: data_y})
+                                        
 nn(x)
