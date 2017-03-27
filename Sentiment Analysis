@@ -1,4 +1,4 @@
-With the help of neural networks(i.numpy , ii. Tensorflow) we can predict that word is of which topic 
+With the help of neural networks(i.sklearn ,ii.numpy , iii. Tensorflow) we can predict that word is of which topic 
 e.g. here we are loading 2 research paper 1 is about cloud computing and other about earth sciences and we are modeling
 decent neural network model so that it can classify the word,that it was from which research background.
 
@@ -58,7 +58,24 @@ for word in earth_interior_paper1:
         index_value = word_bank.index(word.lower())
         x.append([index_value+1])
         y.append([1])
-______________________________________(i. using numpy)_________________________________________________________________________________________
+
+______________________________________________(iii) Sklearn______________________________________________________________________________
+
+
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+clf = RandomForestClassifier()
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+
+x_train , x_test , y_train , y_test = train_test_split(x,y,test_size=0.15)
+
+clf.fit(x_train,y_train)
+print(clf.score(x_test,y_test))
+print(confusion_matrix(y_test,clf.predict(x_test)))
+
+
+___________________________________(ii. using numpy)_________________________________________________________________________________________
 
 x = np.array(x)
 y = np.array(y)
@@ -80,7 +97,7 @@ for i in range(4):
     weights1 += input_layer.T.dot(l1_delta)
     print(str(np.mean(np.abs(error))))
 
-______________________________________________(ii. Tensorflow )____________________________________________________________________________________________
+______________________________________________(iii. Tensorflow )____________________________________________________________________________________________
                 
 *** (Tensorflow neural network model learnt from - [ pythonprogramming.net] ) ***
 
