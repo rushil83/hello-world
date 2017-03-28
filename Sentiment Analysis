@@ -113,9 +113,6 @@ ______________________________________________(iii. Tensorflow )________________
 data_x = np.array(x)
 data_y = np.array(y)
 
-batch_size = 100
- ##class = 10 , bcoz we are pridicting 10 classes i.e from 0-9
-
 ## x = [none = to flat array , 28 * 28 ]
 ## x = height * width , height = none.
 x =tf.placeholder("float",[None,len(word_bank)])
