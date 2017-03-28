@@ -1,0 +1,156 @@
+### content based image classification ###
+(comment)                      we are training our model to distinguish between several images e.g. first we are training our 
+model with sevreal images of keyboards and mouse and then aur model will later successful able to distingush keyboards and mouse
+--------------------------DONE THROUGH 3 WAYS----------------------------------------------------------------------------------
+1. PCA reduction
+    images pixel are taken as feature but our images; hence we are dealt with large amount of feature then with the help of PCA
+ dimensional redcution(covariance/variance matrix) we will reduce of feature list and then could easily be able of build model
+ through ML algo like Random Forest
+2. Tensorflow
+    here we are throwing our pixel data as X and label as Y on our neural net model , and at last neural net is giving us result
+but due to large no. of feature(neurons) and addtion of extra HIDDEN neuron takes some time and model has to be build on GPU
+for this model computations
+3. TFlearn
+    it is an abstraction framework over tensorflow , in this model we are using   RECURRENT NEURAL NETWORK  ( RNN) ,rnn gives 
+ better accuracy to our model.
+ ---------------------------------- Code---- -----------------------------------------------------------------------------------
+ 1 . PCA 
+ 
+ import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import urllib.request
+from sklearn.decomposition import RandomizedPCA
+from bs4 import BeautifulSoup as bs
+import re
+from PIL import Image
+from sklearn.ensemble import RandomForestClassifier
+clf = RandomForestClassifier()
+from sklearn.metrics import confusion_matrix
+
+plt.style.use('ggplot')
+
+data=[]
+data_y = []
+for input in things:
+    for i in range(2,30):
+        pic = Image.open(str(input)+str(i)+".jpg")
+        pic.thumbnail((400, 400), 'NEAREST')
+        map = list(pic.getdata())
+
+        map = np.array(map)
+        map = map.flatten()
+        data.append(map)
+        if input==things[0]:
+            y = ['football']
+        else:y=['vollyball']
+        data_y.append(y)
+data = np.array(data)
+data_y = np.array(data_y)
+
+index = []
+for i in range(8):
+    range = random.randrange(1,55)
+    index.append(range)
+
+test_data = data[index]
+test_data_y = data_y[index]
+
+data = np.delete(data,index,axis=0)
+data_y = np.delete(data_y,index,axis=0)
+
+pca = RandomizedPCA(n_components=275).fit(data)
+train_x = pca.transform(data)
+test_x = pca.transform(test_data)
+
+clf.fit(train_x,data_y)
+y_pred = clf.predict(test_x)
+print(clf.score(test_x,test_data_y))
+print(confusion_matrix(test_data_y,y_pred , labels=['football' , 'vollyball']))
+
+-----------------------------------------------------------------------------------------------------------------------------
+2.Tensorlfow
+
+*** (Tensorflow neural network model learnt from - [ pythonprogramming.net] ) ***
+
+data_x = np.array(train_x)
+data_y = np.array(data_y)
+
+## x = [none = to flat array , 28 * 28 ]
+## x = height * width , height = none.
+x =tf.placeholder("float",[None,len(word_bank)])
+y=tf.placeholder("float")
+
+## 1 input layer -- 3 hidden layer -- 1 outputlayer
+
+## creating hidden layer framework
+## hidden-layer-1 = ['weights','basis'] where weights=matrix of [data,nodes] and bias = [nodes]
+
+
+def nn_framework(x):
+    hidden_layer_1 = {"weights":tf.Variable(tf.random_normal([len(data_x),125])),
+                      "basis":tf.Variable(tf.random_normal([n_nodes1]))}
+
+    hidden_layer_2 = {"weights": tf.Variable(tf.random_normal([125, 500])),
+                      "basis": tf.Variable(tf.random_normal([500]))}
+
+    hidden_layer_3 = {"weights": tf.Variable(tf.random_normal([500, 625])),
+                      "basis": tf.Variable(tf.random_normal([625]))}
+
+    output_layer = {"weights": tf.Variable(tf.random_normal([625, len(data_y])),
+                      "basis": tf.Variable(tf.random_normal([len(data_y]))}
+
+
+##  layer1 = data*weights + bias  ||   [1*data]*[data*nodes]+[1*bias] = layer1
+##  then activation of layer1(i.e neuron burn up or not)
+## ouput-layer dosnt have activation layer
+
+
+    layer_1 = tf.add(tf.matmul(data_x,hidden_layer_1['weights']), hidden_layer_1['basis'])
+    layer_1 = tf.nn.relu(layer_1)
+
+    layer_2 = tf.add(tf.matmul(layer_1, hidden_layer_2['weights']), hidden_layer_2['basis'])
+    layer_2 = tf.nn.relu(layer_2)
+
+    layer_3 = tf.add(tf.matmul(layer_2, hidden_layer_3['weights']), hidden_layer_3['basis'])
+    layer_3 = tf.nn.relu(layer_3)
+
+    o_layer = tf.add(tf.matmul(layer_3, output_layer['weights']), output_layer['basis'])
+
+
+    return o_layer
+
+## hidden layer framework is completed
+
+
+def nn(x):
+##data is passed through neurals and output is get in prediction
+    prediction = nn_framework(x)
+##comparing our NEURAL-OUTPUT with (y) in cost function
+	##mean is calculated of every data point
+	cost_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
+	optimizer = tf.train.AdamOptimizer().minimize(cost_function)
+    epoch_no = 4
+    with tf.Session() as sess:
+    
+       sess.run(tf.initialize_all_variables())
+	for i in range(0,100):
+                i, c = sess.run([optimizer, cost_function], feed_dict={x: data_x,y: data_y})
+                                        
+nn(x)
+
+-----------------------------------------------------------------------------------------------------------------------------
+3. TFlearn
+
+
+net = tflearn.input_data([None,len(train_x])
+net = tflearn.embedding(net, input_dim=10000, output_dim=128)
+net = tflearn.lstm(net, 128, dropout=0.8)
+net = tflearn.fully_connected(net, len(data_y), activation='softmax')
+net = tflearn.regression(net, optimizer='adam', learning_rate=0.01,
+                         loss='categorical_crossentropy')
+
+# Training
+model = tflearn.DNN(net, tensorboard_verbose=0)
+model.fit(data, data_y, validation_set=(test_data, test_data_y), show_metric=True,
+          batch_size=10)
