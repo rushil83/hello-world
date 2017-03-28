@@ -2,6 +2,8 @@ With the help of neural networks(i.sklearn ,ii.numpy , iii. Tensorflow) we can p
 e.g. here we are loading 2 research paper 1 is about cloud computing and other about earth sciences and we are modeling
 decent neural network model so that it can classify the word,that it was from which research background.
 
+earth chemistry text file = https://drive.google.com/open?id=0B_hVF6huZDRcOFZxSEJoSXZOZkk
+cloud computing text file = https://drive.google.com/open?id=0B_hVF6huZDRcX3BSakpkZEVDREU
 
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
