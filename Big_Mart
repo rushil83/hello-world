@@ -1,0 +1,131 @@
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+#from sklearn import cross_validation
+from sklearn.ensemble import RandomForestRegressor
+model = RandomForestRegressor()
+from sklearn.linear_model import Lasso
+lasso = Lasso()
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+
+
+train = pd.read_csv("train.csv")
+train['sample'] = "train"
+test = pd.read_csv("test.csv")
+test['sample'] = "test"
+data = pd.concat([test, train],ignore_index=True)
+data['Item'] = " "
+
+data.ix[data['Item_Fat_Content']=="low fat","Item_Fat_Content"] = 'Low Fat'
+data.ix[data['Item_Fat_Content']=="LF","Item_Fat_Content"] = 'Low Fat'
+data.ix[data['Item_Fat_Content']=="reg","Item_Fat_Content"] = 'Regular'
+data.ix[data['Item_Type']=="Household","Item_Fat_Content"] = 'non_food_items'
+data.ix[data['Item_Type']=="Health and Hygiene","Item_Fat_Content"] = 'non_food_items'
+data.ix[data['Item_Type']=="Others","Item_Fat_Content"] = 'non_food_items'
+
+lowfat= data.ix[data['Item_Fat_Content']=="Low Fat",["Item_Fat_Content",'Item_Weight']]
+lowfat=lowfat.dropna()
+avglowfat = float(lowfat.mean())
+reg= data.ix[data['Item_Fat_Content']=="Regular",["Item_Fat_Content",'Item_Weight']]
+reg=reg.dropna()
+avgreg = float(reg.mean())
+nonfood= data.ix[data['Item_Fat_Content']=="Low Fat",["Item_Fat_Content",'Item_Weight']]
+nonfood=nonfood.dropna()
+avgnonfood = float(nonfood.mean())
+
+data['Item_Weight'] = data['Item_Weight'].fillna(0)
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Fat_Content'] == "Low Fat" and data.ix[i,'Item_Weight'] == 0:
+       data.ix[i, 'Item_Weight'] = int(avglowfat)
+for i in range(len(data)):
+   if data.ix[i,'Item_Fat_Content'] == "Regular" and data.ix[i,'Item_Weight'] == 0:
+       data.ix[i, 'Item_Weight'] = int(avgreg)
+for i in range(len(data)):
+   if data.ix[i,'Item_Fat_Content'] == "non_food_items" and data.ix[i,'Item_Weight'] == 0:
+       data.ix[i, 'Item_Weight'] = int(avgnonfood)
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Fat_Content'] == "non_food_items" and data.ix[i,'Item_Weight'] == 0:
+       data.ix[i, 'Item_Weight'] = int(avgnonfood)
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Type'] == "non_food_items" and data.ix[i,'Item_Weight'] == 0:
+       data.ix[i, 'Item_Weight'] = int(avgnonfood)
+
+
+for i in range(len(data)):
+    data.ix[i,'Outlet_Year'] = 2013 - data.ix[i,'Outlet_Establishment_Year']
+
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Identifier'][0:2] == "FD":
+       data.ix[i, 'Item'] = "Food"
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Identifier'][0:2] == "NC":
+       data.ix[i,'Item'] = "Non_consumable"
+
+for i in range(len(data)):
+   if data.ix[i,'Item_Identifier'][0:2] == "DR":
+       data.ix[i,'Item'] = "Drinks"
+
+data = pd.get_dummies(data, columns=['Item','Item_Fat_Content','Outlet_Location_Type',
+                                     'Outlet_Size','Outlet_Type'])
+
+data = data.fillna(0)
+
+train_new = []
+test_new=[]
+
+for i in range(len(data)):
+    if data.ix[i,'sample'] == 'train':
+        train_new.append(data.ix[i])
+    else:
+        test_new.append(data.ix[i])
+
+train_new = pd.DataFrame(train_new)
+test_new = pd.DataFrame(test_new)
+train_y = train_new['Item_Outlet_Sales']
+train_new=train_new.drop('sample',axis=1)
+train_new=train_new.drop('Outlet_Establishment_Year',axis=1)
+train=train_new.drop('Item_Outlet_Sales',axis=1)
+test_new=test_new.drop('sample',axis=1)
+test_new=test_new.drop('Item_Outlet_Sales',axis=1)
+test_new=test_new.drop('Item_Identifier',axis=1)
+train_new=train_new.drop('Item_Identifier',axis=1)
+train_new = train_new.drop('Item_Type',axis=1)
+test_new = test_new.drop('Item_Type',axis=1)
+train_new = train_new.drop('Outlet_Identifier',axis=1)
+test_new = test_new.drop('Outlet_Identifier',axis=1)
+
+
+train = train_new.drop('Item_Outlet_Sales',axis=1)
+train_y  =  train_new['Item_Outlet_Sales']
+test = test_new.drop('Outlet_Establishment_Year',axis=1)
+
+
+X_train, X_test, y_train, y_test = train_test_split(train , train_y ,test_size= 0.15)
+
+score = cross_val_score(model , train,train_y)
+print('random_classifier score :  ', score.mean())
+
+score2 = cross_val_score(lasso , train , train_y)
+print('lasso regression score : ', score2.mean())
+
+model = model.fit(train,train_y)
+print('feature importance ratio : ' , model.feature_importances_)
+
+print('feature list : ' , train_new.columns)
+
+salesbylasso = lasso.fit(train,train_y)
+salesbylasso = lasso.predict(test)
+
+salesbyrf = model.fit(train,train_y)
+salesbyrf = model.predict(test)
+
+test['sales_by_lasso'] = salesbylasso
+test['sales_by_radomforest']= salesbyrf
+
+test.to_csv('final_output.csv')
+print(test.head())
