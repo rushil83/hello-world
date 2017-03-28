@@ -61,21 +61,28 @@ for word in earth_interior_paper1:
 
 ______________________________________________(iii) Sklearn______________________________________________________________________________
 
+from sklearn.naive_bayes import MultinomialNB
+clf2 = MultinomialNB()
+from sklearn.feature_extraction.text import CountVectorizer
+cvect = CountVectorizer(stop_words='english')
 
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-clf = RandomForestClassifier()
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
+cloud_computing = open('computing.txt',mode='r').read()
+earth_interior= open('neg.txt',mode='r').read()
 
-x_train , x_test , y_train , y_test = train_test_split(x,y,test_size=0.15)
+words = [cloud_computing,earth_interior]
+classes= ['cloud computing' , 'earth science' ]
 
-clf.fit(x_train,y_train)
-print(clf.score(x_test,y_test))
-print(confusion_matrix(y_test,clf.predict(x_test)))
+train = cvect.fit_transform(words).toarray()
+clf2.fit(train,classes)
+
+predict = ['data','machine','mantle','chemistry']
+
+predict = cvect.transform(predict).toarray()
+print(clf2.predict(predict))
 
 
 ___________________________________(ii. using numpy)_________________________________________________________________________________________
+
 
 x = np.array(x)
 y = np.array(y)
@@ -85,14 +92,14 @@ bias1 = 2*np.random.random((1,len(x))) - 1
 bias2 = 2*np.random.random((len(x),1)) - 1
 
 
-for i in range(4):
+for j in range(4):
     input_layer = x
-    hidden_layer1 = 1/(1+np.exp(-((np.dot(input_layer,weights1))+bias1)))
-    hidden_layer2 = 1/(1+np.exp(-((np.dot(hidden_layer1,weights2))+bias2)))
+    hidden_layer1 = 1/(1+np.exp(-((np.dot(input_layer,weights1)))))
+    hidden_layer2 = 1/(1+np.exp(-((np.dot(hidden_layer1,weights2)))))
     error = y - hidden_layer2
-    l2_delta = error * 1 / (1 + np.exp(-(np.dot(hidden_layer1, weights2))))
+    l2_delta = error  *(hidden_layer2/(1-hidden_layer2))
     l1_error = l2_delta.dot(weights2.T)
-    l1_delta = l1_error * 1 / (1 + np.exp(-(np.dot(input_layer, weights1))))
+    l1_delta = l1_error * (hidden_layer1/(1-hidden_layer1))
     weights2 += hidden_layer1.T.dot(l2_delta)
     weights1 += input_layer.T.dot(l1_delta)
     print(str(np.mean(np.abs(error))))
