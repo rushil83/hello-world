@@ -18,82 +18,62 @@ for i in range(len(file)-1):
     x.append(b.split(' ',1)[1])
     y1.append(b.split(' ',1)[0])
 
-## constructing the Dataframe
 data = (pd.DataFrame([x,y,y1])).T
 data['x']=data[0]
-x = data['x']
 data['y']=data[1]
 data['y1']=data[2]
 del data[0]
 del data[1]
 del data[2]
 
-## a trend can be seen by analyzing the data that
-# category "DESC" contains subcategories ['manner', 'def', 'reason', 'desc'] and similarly
-#'HUM': ['ind', 'gr', 'title', 'desc'] , 'LOC': ['state', 'other', 'country', 'city', 'mount']
-# so we have created a dictionary, subcategories as value and categories as key
-# and we will train only for subcategories and  subsequently we will get the categories through subcategories
+uy1 = data['y1'].unique()
+uy= data['y'].unique()
 
-yunique = data['y'].unique()
-y1unique = data['y1'].unique()
-dic = {}
-desc= data[data['y']=='DESC']['y1']
-yd1=(desc.unique())
-dic['DESC']=list(yd1)
-desc= data[data['y']=='ENTY']['y1']
-yd2=(desc.unique())
-dic['ENTY']=list(yd2)
-desc= data[data['y']=='ABBR']['y1']
-yd3=(desc.unique())
-dic['ABBR']=list(yd3)
-desc= data[data['y']=='HUM']['y1']
-yd4=(desc.unique())
-dic['HUM']=list(yd4)
-desc= data[data['y']=='NUM']['y1']
-yd5=(desc.unique())
-dic['NUM']=list(yd5)
-desc= data[data['y']=='LOC']['y1']
-yd6=(desc.unique())
-dic['LOC']=list(yd6)
-
-
-print(dic)
-x= data['x']
-y = data['y1']
-
-# we will create Vocabulary from sentences in which maximum length of sentences is 17 word
-# and then we will convert our text into numeric matrix
-#padding could occur automatically
 vocab_proc = VocabularyProcessor(17)
 x = np.array(list(vocab_proc.fit_transform(x)))
 
-# similary for our labels(subcategories)
 vocab_proc2 = VocabularyProcessor(1)
+y1 = np.array(list(vocab_proc2.fit_transform(y))) - 1
+y1 = to_categorical(y1, nb_classes=len(data['y1'].unique()))
 y = np.array(list(vocab_proc2.fit_transform(y))) - 1
-y = to_categorical(y, nb_classes=len(data['y1'].unique()))
+y = to_categorical(y, nb_classes=len(data['y'].unique()))
+""""""
+yfinal = []
+for i in range(len(data)):
+    a = y[i].reshape((1,6))
+    b = y1[i].reshape((47,1))
+    dot = np.dot(b,a)
+    dot = dot.flatten()
+    yfinal.append(dot)
 
-trainx,testx,trainy,testy = train_test_split(x,y,test_size=0.12)
+
+trainx,testx,trainy,testy = train_test_split(x,yfinal,test_size=0.12)
+
 
 # each input has length 17
 net = tflearn.input_data([None, 17])
 
+
 # The 17 input word integers are then casted out into 128 dimensions each creating a word embedding.
 net = tflearn.embedding(net, input_dim=10000, output_dim=128)
 
+
 # each input will have size of 15x256 and then we will fed every single 256 sized vectors are into LSTM cells
 # dropout used for removing overfitting and reducing size
-net = tflearn.lstm(net, 128, dropout=0.8)
+net = tflearn.lstm(net, 152, dropout=0.5)
+
 
 ### output is then sent to a fully connected layer that will give us our final 47 classes
-net = tflearn.fully_connected(net,n_units=47,activation='softmax')
+net = tflearn.fully_connected(net,282,activation='softmax')
+
 
 ##loss here is categorical crossentropy because in seq to seq type model categorical crossentopy gives better result.
 # In  these categorical crossentropy we calculate the entropy of every classification split and
 # based on maximum information gain, classfication model is choosen
-
 net = tflearn.regression(net, optimizer='adam', learning_rate=0.001,loss='categorical_crossentropy')
 
 ## traing our deep neural network
 model = tflearn.DNN(net, tensorboard_verbose=3)
-## accuracy can vary with batch size and epoch. On this batch_size=2 and epoch=1 we got near about 0.48 val acc.
-model.fit(trainx, trainy, validation_set=(testx, testy), show_metric=True,batch_size=2,n_epoch=1)
+
+
+model.fit(trainx, trainy, validation_set=(testx, testy), show_metric=True,batch_size=100,n_epoch=5)
