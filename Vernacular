@@ -55,7 +55,7 @@ net = tflearn.input_data([None, 17])
 
 
 # The 17 input word integers are then casted out into 128 dimensions each creating a word embedding.
-net = tflearn.embedding(net, input_dim=10000, output_dim=128)
+net = tflearn.embedding(net, output_dim=128)
 
 
 # each input will have size of 17x256 and then we will fed every single 256 sized vectors are into LSTM cells
