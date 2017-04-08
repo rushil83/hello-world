@@ -60,7 +60,7 @@ net = tflearn.embedding(net, output_dim=128)
 
 # each input will have size of 17x256 and then we will fed every single 256 sized vectors are into LSTM cells
 # dropout used for removing overfitting and reducing size
-net = tflearn.lstm(net, 152, dropout=0.5)
+net = tflearn.lstm(net, 256, dropout=0.5)
 
 
 ### output is then sent to a fully connected layer that will give us our final 282 classes
