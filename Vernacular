@@ -58,7 +58,7 @@ net = tflearn.input_data([None, 17])
 net = tflearn.embedding(net, output_dim=128)
 
 
-# each input will have size of 17x256 and then we will fed every single 256 sized vectors are into LSTM cells
+# each input will have size of 17*128 and then we will fed every single 128 sized vectors are into LSTM cells
 # dropout used for removing overfitting and reducing size
 net = tflearn.lstm(net, 256, dropout=0.5)
 
